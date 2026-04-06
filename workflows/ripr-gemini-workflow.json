@@ -1,0 +1,77 @@
+{
+  "name": "RIPR - Gemini Validator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ripr-gemini",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "ripr-gemini"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $credentials.googlePalmApi.apiKey }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googlePalmApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"role\": \"user\",\n      \"parts\": [{\n        \"text\": \"You are a fact-checking validator. Given claims and sources, verify each claim independently.\\n\\nScore each dimension 1-10:\\n- accuracy: Are claims factually correct?\\n- freshness: Is information current?\\n- completeness: Are there gaps?\\n- relevance: Does it fit the audience?\\n- clarity: Is it well-structured?\\n\\nFor each claim, mark status as: VERIFIED, CONFIRMED, UNVERIFIED, CONTRADICTED, or MISLEADING.\\n\\nReturn JSON only (no markdown):\\n{\\n  \\\"validator\\\": \\\"gemini\\\",\\n  \\\"claim_validations\\\": [{\\\"claim_id\\\": \\\"C1\\\", \\\"status\\\": \\\"VERIFIED\\\", \\\"notes\\\": \\\"...\\\"}],\\n  \\\"scores\\\": {\\\"accuracy\\\": 9, \\\"freshness\\\": 8.5, \\\"completeness\\\": 9, \\\"relevance\\\": 9, \\\"clarity\\\": 9},\\n  \\\"weighted_score\\\": 8.9,\\n  \\\"feedback\\\": [{\\\"type\\\": \\\"suggestion\\\", \\\"issue\\\": \\\"...\\\", \\\"recommendation\\\": \\\"...\\\"}],\\n  \\\"verdict\\\": \\\"PASS\\\"\\n}\\n\\nClaims to validate:\\n{{ JSON.stringify($json.body) }}\"\n      }]\n    }\n  ],\n  \"generationConfig\": {\n    \"temperature\": 0.3,\n    \"responseMimeType\": \"application/json\"\n  }\n}",
+        "options": {}
+      },
+      "id": "gemini-1",
+      "name": "Gemini Validator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "gemini-cred",
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.candidates[0].content.parts[0].text;\ntry {\n  return [{ json: JSON.parse(content) }];\n} catch (e) {\n  // Handle markdown-wrapped JSON\n  const cleaned = content.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  return [{ json: JSON.parse(cleaned) }];\n}"
+      },
+      "id": "code-1",
+      "name": "Parse Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "respond-1",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "Gemini Validator", "type": "main", "index": 0}]]
+    },
+    "Gemini Validator": {
+      "main": [[{"node": "Parse Response", "type": "main", "index": 0}]]
+    },
+    "Parse Response": {
+      "main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

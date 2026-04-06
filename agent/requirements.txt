@@ -1,0 +1,12 @@
+anthropic>=0.40.0
+mcp>=1.0.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+openpyxl>=3.1.0
+pandas>=2.0.0
+matplotlib>=3.8.0
+plotly>=5.18.0
+python-pptx>=0.6.23
+weasyprint>=62.0
+kaleido>=0.2.1
+lxml>=5.0.0

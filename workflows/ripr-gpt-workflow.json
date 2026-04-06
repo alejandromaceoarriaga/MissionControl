@@ -1,0 +1,77 @@
+{
+  "name": "RIPR - ChatGPT Validator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ripr-gpt",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "ripr-gpt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a fact-checking validator. Given a list of claims with sources, independently verify each claim and provide scores.\\n\\nScore each dimension 1-10:\\n- accuracy: Are claims factually correct?\\n- freshness: Is information current?\\n- completeness: Are there gaps?\\n- relevance: Does it fit the audience?\\n- clarity: Is it well-structured?\\n\\nFor each claim, mark status as: VERIFIED, CONFIRMED, UNVERIFIED, CONTRADICTED, or MISLEADING.\\n\\nReturn JSON only:\\n{\\n  \\\"validator\\\": \\\"chatgpt\\\",\\n  \\\"claim_validations\\\": [{\\\"claim_id\\\": \\\"C1\\\", \\\"status\\\": \\\"VERIFIED\\\", \\\"notes\\\": \\\"...\\\"}],\\n  \\\"scores\\\": {\\\"accuracy\\\": 9, \\\"freshness\\\": 8.5, \\\"completeness\\\": 9, \\\"relevance\\\": 9, \\\"clarity\\\": 9},\\n  \\\"weighted_score\\\": 8.9,\\n  \\\"feedback\\\": [{\\\"type\\\": \\\"suggestion\\\", \\\"issue\\\": \\\"...\\\", \\\"recommendation\\\": \\\"...\\\"}],\\n  \\\"verdict\\\": \\\"PASS\\\"\\n}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ JSON.stringify($json.body) }}\"\n    }\n  ],\n  \"temperature\": 0.3,\n  \"response_format\": { \"type\": \"json_object\" }\n}",
+        "options": {}
+      },
+      "id": "openai-1",
+      "name": "ChatGPT Validator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-cred",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.choices[0].message.content;\nreturn [{ json: JSON.parse(content) }];"
+      },
+      "id": "code-1",
+      "name": "Parse Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "respond-1",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{"node": "ChatGPT Validator", "type": "main", "index": 0}]]
+    },
+    "ChatGPT Validator": {
+      "main": [[{"node": "Parse Response", "type": "main", "index": 0}]]
+    },
+    "Parse Response": {
+      "main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

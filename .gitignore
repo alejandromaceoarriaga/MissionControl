@@ -1,0 +1,21 @@
+# Environment files with secrets
+.env
+
+# Docker volumes (if local)
+data/
+
+# OS files
+.DS_Store
+._*
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Workspace files (user data)
+workspace/*
+!workspace/.gitkeep

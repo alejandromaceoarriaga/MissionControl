@@ -1,0 +1,33 @@
+{
+  "$schema": "https://openclaw.ai/schemas/config.json",
+  "version": "2026.2",
+  
+  "gateway": {
+    "port": 3456,
+    "host": "0.0.0.0"
+  },
+  
+  "models": {
+    "default": "anthropic/claude-sonnet-4-20250514",
+    "thinking": "low"
+  },
+  
+  "channels": {
+    "telegram": {
+      "enabled": false,
+      "token": "YOUR_BOT_TOKEN"
+    }
+  },
+  
+  "skills": {
+    "enabled": true,
+    "paths": [
+      "./skills"
+    ]
+  },
+  
+  "n8n": {
+    "webhookBase": "http://n8n:5678/webhook",
+    "enabled": true
+  }
+}
