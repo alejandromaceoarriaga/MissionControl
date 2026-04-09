@@ -135,13 +135,16 @@ class BCRDClient:
         self._save_cache("inflacion", result)
         return result
 
+    def _fetch_tipo_cambio_html(self, url: str) -> str:
+        resp = requests.get(url, timeout=15)
+        return resp.text
+
     def get_tipo_cambio(self) -> dict:
         cached = self._load_cache("tipo_cambio")
         if cached:
             return cached
         try:
-            resp = requests.get(BCRD_STATS_URL, timeout=15)
-            text = resp.text
+            text = self._fetch_tipo_cambio_html(BCRD_STATS_URL)
             compra_match = re.search(r"[Cc]ompra[:\s]+([\d.]+)", text)
             venta_match = re.search(r"[Vv]enta[:\s]+([\d.]+)", text)
             result = {
