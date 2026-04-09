@@ -52,6 +52,34 @@ class BCRDClient:
         series = pd.to_numeric(df[col], errors="coerce").dropna()
         return float(series.iloc[-1]) if len(series) else None
 
+    def _last_value(self, series: pd.Series) -> float | None:
+        """Return last value of a numeric series, or None if empty."""
+        return float(series.iloc[-1]) if len(series) else None
+
+    def _get_index_with_var_ia(self, cache_key: str, url_key: str) -> dict:
+        """Fetch an index series (IMAE or IPC) and compute interannual variation."""
+        cached = self._load_cache(cache_key)
+        if cached:
+            return cached
+        df = self._download_excel(URLS[url_key])
+        numeric_col = df.columns[1]
+        series = pd.to_numeric(df[numeric_col], errors="coerce").dropna()
+        val = self._last_value(series)
+        if val is None:
+            return {"date": str(date.today()), "value": None, "var_interanual": None}
+        var_ia = None
+        if len(series) > 12:
+            val_prev = float(series.iloc[-13])
+            var_ia = round((val - val_prev) / abs(val_prev) * 100, 2)
+        last_idx = series.index[-1]
+        result = {
+            "date": str(df.iloc[last_idx, 0]),
+            "value": val,
+            "var_interanual": var_ia,
+        }
+        self._save_cache(cache_key, result)
+        return result
+
     def get_tpm(self) -> dict:
         cached = self._load_cache("tpm")
         if cached:
@@ -59,12 +87,12 @@ class BCRDClient:
         df = self._download_excel(URLS["tpm"])
         numeric_col = df.columns[-1]
         series = pd.to_numeric(df[numeric_col], errors="coerce").dropna()
+        val = self._last_value(series)
+        if val is None:
+            return {"value": None, "date": str(date.today())}
         date_col = df.columns[0]
         last_idx = series.index[-1]
-        result = {
-            "value": float(series.iloc[-1]),
-            "date": str(df[date_col].iloc[last_idx]),
-        }
+        result = {"value": val, "date": str(df[date_col].iloc[last_idx])}
         self._save_cache("tpm", result)
         return result
 
@@ -96,44 +124,10 @@ class BCRDClient:
         return result
 
     def get_imae(self) -> dict:
-        cached = self._load_cache("imae")
-        if cached:
-            return cached
-        df = self._download_excel(URLS["imae"])
-        numeric_col = df.columns[1]
-        series = pd.to_numeric(df[numeric_col], errors="coerce").dropna()
-        val = float(series.iloc[-1])
-        var_ia = None
-        if len(series) > 12:
-            val_prev = float(series.iloc[-13])
-            var_ia = round((val - val_prev) / abs(val_prev) * 100, 2)
-        result = {
-            "date": str(df.iloc[series.index[-1], 0]),
-            "value": val,
-            "var_interanual": var_ia,
-        }
-        self._save_cache("imae", result)
-        return result
+        return self._get_index_with_var_ia("imae", "imae")
 
     def get_inflacion(self) -> dict:
-        cached = self._load_cache("inflacion")
-        if cached:
-            return cached
-        df = self._download_excel(URLS["ipc"])
-        numeric_col = df.columns[1]
-        series = pd.to_numeric(df[numeric_col], errors="coerce").dropna()
-        val = float(series.iloc[-1])
-        var_ia = None
-        if len(series) > 12:
-            val_prev = float(series.iloc[-13])
-            var_ia = round((val - val_prev) / abs(val_prev) * 100, 2)
-        result = {
-            "date": str(df.iloc[series.index[-1], 0]),
-            "value": val,
-            "var_interanual": var_ia,
-        }
-        self._save_cache("inflacion", result)
-        return result
+        return self._get_index_with_var_ia("inflacion", "ipc")
 
     def _fetch_tipo_cambio_html(self, url: str) -> str:
         resp = requests.get(url, timeout=15)
@@ -147,15 +141,14 @@ class BCRDClient:
             text = self._fetch_tipo_cambio_html(BCRD_STATS_URL)
             compra_match = re.search(r"[Cc]ompra[:\s]+([\d.]+)", text)
             venta_match = re.search(r"[Vv]enta[:\s]+([\d.]+)", text)
-            result = {
-                "date": str(date.today()),
-                "compra": float(compra_match.group(1)) if compra_match else None,
-                "venta": float(venta_match.group(1)) if venta_match else None,
-            }
+            compra = float(compra_match.group(1)) if compra_match else None
+            venta = float(venta_match.group(1)) if venta_match else None
+            result = {"date": str(date.today()), "compra": compra, "venta": venta}
+            if compra is not None and venta is not None:
+                self._save_cache("tipo_cambio", result)
+            return result
         except Exception as e:
-            result = {"date": str(date.today()), "compra": None, "venta": None, "error": str(e)}
-        self._save_cache("tipo_cambio", result)
-        return result
+            return {"date": str(date.today()), "compra": None, "venta": None, "error": str(e)}
 
     def get_reservas(self) -> dict:
         cached = self._load_cache("reservas")
@@ -164,10 +157,11 @@ class BCRDClient:
         df = self._download_excel(URLS["reservas"])
         numeric_col = df.columns[1]
         series = pd.to_numeric(df[numeric_col], errors="coerce").dropna()
-        result = {
-            "date": str(df.iloc[series.index[-1], 0]),
-            "brutas_mm_usd": float(series.iloc[-1]),
-        }
+        val = self._last_value(series)
+        if val is None:
+            return {"date": str(date.today()), "brutas_mm_usd": None}
+        last_idx = series.index[-1]
+        result = {"date": str(df.iloc[last_idx, 0]), "brutas_mm_usd": val}
         self._save_cache("reservas", result)
         return result
 

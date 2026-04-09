@@ -94,6 +94,14 @@ def test_get_tipo_cambio_uses_seam(tmp_path):
     assert result['compra'] == 60.55
     assert result['venta'] == 61.19
 
+def test_get_tpm_empty_series_returns_none(tmp_path):
+    client = BCRDClient(cache_dir=str(tmp_path))
+    # All NaN column
+    excel_bytes = _make_excel({'Fecha': ['2026-03-01'], 'TPM': [float('nan')]})
+    with patch.object(client, '_download_excel', return_value=pd.read_excel(BytesIO(excel_bytes))):
+        result = client.get_tpm()
+    assert result['value'] is None
+
 def test_get_all_returns_all_keys(tmp_path):
     client = BCRDClient(cache_dir=str(tmp_path))
     excel_bytes = _make_excel({'Fecha': ['2026-03-01'], 'Val': [5.25]})
