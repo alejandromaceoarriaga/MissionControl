@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — El Dato Oculto Manager</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.7; color: #333; }
+    h1 { color: #111; border-bottom: 2px solid #fe2c55; padding-bottom: 12px; }
+    h2 { color: #222; margin-top: 32px; }
+    a { color: #fe2c55; }
+    .date { color: #666; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h1>Privacy Policy</h1>
+  <p class="date">Last updated: April 9, 2026</p>
+
+  <h2>1. Introduction</h2>
+  <p>El Dato Oculto Manager ("the App", "we", "us") is an automated content management tool that connects to TikTok via the TikTok for Developers API to publish short-form video content on behalf of its operator.</p>
+
+  <h2>2. Information We Collect</h2>
+  <p>The App collects and processes only the information strictly necessary to operate:</p>
+  <ul>
+    <li><strong>TikTok OAuth tokens:</strong> Access and refresh tokens provided by TikTok's authorization flow. Stored locally on the operator's machine and never transmitted to third parties.</li>
+    <li><strong>Video metadata:</strong> Video IDs, view counts, likes, comments, and shares — retrieved from the TikTok API for analytics purposes.</li>
+    <li><strong>Comment text:</strong> Public comments on published videos, used solely to generate automated replies via the Claude AI API.</li>
+  </ul>
+
+  <h2>3. How We Use Information</h2>
+  <ul>
+    <li>To publish video content to TikTok on the operator's behalf.</li>
+    <li>To generate AI-powered replies to public comments.</li>
+    <li>To compute engagement analytics and display a local dashboard.</li>
+  </ul>
+
+  <h2>4. Data Sharing</h2>
+  <p>We do not sell, rent, or share personal data with third parties. The only external API calls made are to:</p>
+  <ul>
+    <li><strong>TikTok API</strong> (open.tiktokapis.com) — for content publishing and analytics.</li>
+    <li><strong>Anthropic Claude API</strong> (api.anthropic.com) — for AI script generation and comment replies.</li>
+    <li><strong>Google TTS</strong> (translate.google.com) — for text-to-speech audio generation.</li>
+  </ul>
+
+  <h2>5. Data Retention</h2>
+  <p>All data is stored locally on the operator's machine. No database or cloud storage is used. Tokens are retained until manually deleted. Video metadata is cached in a local JSON file.</p>
+
+  <h2>6. User Rights</h2>
+  <p>Users whose comments are processed have the right to request deletion of their data by contacting us at the email below. Comment data is not retained beyond the session in which it is processed.</p>
+
+  <h2>7. Security</h2>
+  <p>All credentials are stored in environment variables on the operator's local machine. The App does not expose any data to the public internet.</p>
+
+  <h2>8. Children's Privacy</h2>
+  <p>The App is not directed at children under 13. We do not knowingly collect information from children.</p>
+
+  <h2>9. Changes to This Policy</h2>
+  <p>We may update this policy. Changes will be reflected by updating the "Last updated" date above.</p>
+
+  <h2>10. Contact</h2>
+  <p>For privacy inquiries: <a href="mailto:eldatooculto7@gmail.com">eldatooculto7@gmail.com</a></p>
+</body>
+</html>
