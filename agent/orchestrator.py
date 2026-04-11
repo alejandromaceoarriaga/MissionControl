@@ -2,6 +2,13 @@
 import os
 from datetime import date
 
+# Load .env if present (for standalone CLI usage)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from agent.data_sources.bcrd import BCRDClient
 from agent.data_sources.superbancos import SuperbancosClient
 from agent.data_sources.imf import IMFClient
@@ -41,7 +48,7 @@ class Orchestrator:
         print("  [OK] BCRD")
 
         try:
-            sb_data = self.sb.get_banking_data()
+            sb_data = self.sb.get_all()
             print("  [OK] Superintendencia de Bancos")
         except Exception as e:
             print(f"  [WARN] SB failed: {e}")
@@ -62,7 +69,7 @@ class Orchestrator:
             wb_data = []
 
         try:
-            hacienda_data = self.hacienda.get_fiscal_data()
+            hacienda_data = self.hacienda.get_all()
             print("  [OK] Hacienda")
         except Exception as e:
             print(f"  [WARN] Hacienda failed: {e}")

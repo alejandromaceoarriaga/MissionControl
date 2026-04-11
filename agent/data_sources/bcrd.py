@@ -45,7 +45,8 @@ class BCRDClient:
     def _download_excel(self, url: str) -> pd.DataFrame:
         resp = requests.get(url, timeout=30)
         resp.raise_for_status()
-        return pd.read_excel(BytesIO(resp.content), sheet_name=0)
+        engine = "xlrd" if url.lower().endswith(".xls") else "openpyxl"
+        return pd.read_excel(BytesIO(resp.content), sheet_name=0, engine=engine)
 
     def _last_numeric(self, df: pd.DataFrame, col_idx: int = 1):
         col = df.columns[col_idx]
