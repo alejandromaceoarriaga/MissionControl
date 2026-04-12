@@ -19,3 +19,13 @@ Thumbs.db
 # Workspace files (user data)
 workspace/*
 !workspace/.gitkeep
+
+# Binaries
+ngrok.exe
+*.exe
+
+# Pip artifacts
+=*
+
+# Claude user settings
+.claude/
